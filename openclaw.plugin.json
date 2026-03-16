@@ -1,0 +1,79 @@
+{
+  "id": "operator-kit",
+  "name": "Operator Kit",
+  "description": "Scaffold a full AI operator: identity, memory system, instincts, cron jobs, agent architecture, and trust ladder",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "operatorName": {
+        "type": "string",
+        "default": "Assistant"
+      },
+      "ownerName": {
+        "type": "string",
+        "default": "User"
+      },
+      "workspacePath": {
+        "type": "string"
+      },
+      "enableMemorySystem": {
+        "type": "boolean",
+        "default": true
+      },
+      "enableInstincts": {
+        "type": "boolean",
+        "default": true
+      },
+      "enableCronJobs": {
+        "type": "boolean",
+        "default": false
+      },
+      "enableAgentRoles": {
+        "type": "boolean",
+        "default": false
+      },
+      "timezone": {
+        "type": "string",
+        "default": "America/New_York"
+      }
+    }
+  },
+  "uiHints": {
+    "operatorName": {
+      "label": "Operator Name",
+      "help": "The name of your AI operator (e.g., 'Imogen', 'Jarvis', 'Friday')"
+    },
+    "ownerName": {
+      "label": "Owner Name",
+      "help": "Your name — the operator will reference you by this"
+    },
+    "workspacePath": {
+      "label": "Workspace Path",
+      "help": "Where operator files live (default: ~/.openclaw/workspace)"
+    },
+    "enableMemorySystem": {
+      "label": "Memory System",
+      "help": "Daily logs + evergreen references for cross-session continuity"
+    },
+    "enableInstincts": {
+      "label": "Instinct Engine",
+      "help": "Confidence-weighted learned behaviors that evolve over time"
+    },
+    "enableCronJobs": {
+      "label": "Cron Jobs",
+      "help": "Starter cron jobs (morning briefing, nightly rundown, security check)"
+    },
+    "enableAgentRoles": {
+      "label": "Agent Roles",
+      "help": "Multi-agent architecture (orchestrator, coder, security, researcher)"
+    },
+    "timezone": {
+      "label": "Timezone",
+      "help": "IANA timezone for cron scheduling (e.g., America/New_York)"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@imogenlabs/operator-kit",
+  "version": "0.1.0",
+  "description": "AI operator scaffold for OpenClaw — identity, memory, instincts, cron, and agent architecture in one install",
+  "type": "module",
+  "main": "index.ts",
+  "license": "MIT",
+  "author": "ImogenLabs <michael@mjashley.com>",
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "ai-operator",
+    "agent-scaffold",
+    "memory-system",
+    "instincts"
+  ],
+  "files": [
+    "index.ts",
+    "src/**/*.ts",
+    "templates/**/*",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48"
+  },
+  "peerDependencies": {
+    "openclaw": "*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smashingtags/operator-kit.git"
+  },
+  "homepage": "https://github.com/smashingtags/operator-kit#readme"
+}
