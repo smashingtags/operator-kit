@@ -52,6 +52,16 @@ On first load, operator-kit checks your workspace for missing files and creates 
 
 The memory system creates daily log files and an index. The instincts engine seeds one starter instinct (ask before external actions) and provides a tool to create more as your operator learns.
 
+## Companion: Lossless Context Management
+
+For cross-session memory that survives context window limits, install [lossless-claw](https://github.com/Martian-Engineering/lossless-claw):
+
+```bash
+openclaw plugins install @martian-engineering/lossless-claw
+```
+
+Operator-kit handles the *identity and workspace structure*. Lossless-claw handles the *conversation memory* — DAG-based summarization with incremental compaction so your operator remembers what happened across sessions.
+
 ## Inspired By
 
 Built from the patterns behind Imogen, the AI operator at ImogenLabs.

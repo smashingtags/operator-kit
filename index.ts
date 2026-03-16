@@ -3,10 +3,14 @@
  *
  * Scaffolds a complete AI operator setup: identity, memory system,
  * instincts engine, cron jobs, and multi-agent architecture.
+ *
+ * Companion plugin: @martian-engineering/lossless-claw (recommended)
+ * for DAG-based context management across sessions.
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
+import { Type } from "@sinclair/typebox";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 
 interface OperatorKitConfig {
@@ -60,9 +64,12 @@ function writeIfMissing(path: string, content: string): boolean {
   return true;
 }
 
+function textResult(text: string) {
+  return { content: [{ type: "text" as const, text }], details: {} };
+}
+
 function scaffoldIdentity(ws: string, vars: Record<string, string>): string[] {
   const created: string[] = [];
-
   const files = [
     { name: "SOUL.md", template: "SOUL.md" },
     { name: "IDENTITY.md", template: "IDENTITY.md" },
@@ -71,14 +78,12 @@ function scaffoldIdentity(ws: string, vars: Record<string, string>): string[] {
     { name: "USER.md", template: "USER.md" },
     { name: "HEARTBEAT.md", template: "HEARTBEAT.md" },
   ];
-
   for (const file of files) {
     const content = renderTemplate(loadTemplate(file.template), vars);
     if (writeIfMissing(join(ws, file.name), content)) {
       created.push(file.name);
     }
   }
-
   return created;
 }
 
@@ -96,7 +101,6 @@ function scaffoldMemory(ws: string): string[] {
   if (writeIfMissing(join(memDir, "MEMORY.md"), memoryIndex)) {
     created.push("memory/MEMORY.md");
   }
-
   return created;
 }
 
@@ -120,37 +124,31 @@ rationale: |
   Getting this wrong destroys trust faster than anything else.
 evidence: []
 `;
-
   if (writeIfMissing(join(ws, "instincts", "global", "ask-before-external.yaml"), seedInstinct)) {
     created.push("instincts/global/ask-before-external.yaml");
   }
-
   return created;
 }
 
 function scaffoldAgentRoles(ws: string, vars: Record<string, string>): string[] {
   const created: string[] = [];
   const roles = ["orchestrator", "coder", "security", "researcher"];
-
   for (const role of roles) {
     const roleDir = join(ws, "agents", role);
     ensureDir(roleDir);
-
     const content = renderTemplate(loadTemplate(`agent-${role}.md`), vars);
     if (writeIfMissing(join(roleDir, "SOUL.md"), content)) {
       created.push(`agents/${role}/SOUL.md`);
     }
   }
-
   return created;
 }
 
 function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
   const cronPath = join(homedir(), ".openclaw", "cron", "jobs.json");
   if (existsSync(cronPath)) {
-    return []; // don't overwrite existing cron config
+    return [];
   }
-
   ensureDir(join(homedir(), ".openclaw", "cron"));
 
   const jobs = {
@@ -164,11 +162,7 @@ function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
         enabled: true,
         createdAtMs: Date.now(),
         updatedAtMs: Date.now(),
-        schedule: {
-          kind: "cron",
-          expr: "0 7 * * *",
-          tz: config.timezone,
-        },
+        schedule: { kind: "cron", expr: "0 7 * * *", tz: config.timezone },
         sessionTarget: "isolated",
         wakeMode: "now",
         payload: {
@@ -177,16 +171,8 @@ function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
           thinking: "low",
           timeoutSeconds: 90,
         },
-        delivery: {
-          mode: "announce",
-          bestEffort: true,
-        },
-        state: {
-          nextRunAtMs: 0,
-          lastRunAtMs: 0,
-          lastRunStatus: null,
-          consecutiveErrors: 0,
-        },
+        delivery: { mode: "announce", bestEffort: true },
+        state: { nextRunAtMs: 0, lastRunAtMs: 0, lastRunStatus: null, consecutiveErrors: 0 },
         deleteAfterRun: false,
       },
       {
@@ -197,11 +183,7 @@ function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
         enabled: true,
         createdAtMs: Date.now(),
         updatedAtMs: Date.now(),
-        schedule: {
-          kind: "cron",
-          expr: "0 23 * * *",
-          tz: config.timezone,
-        },
+        schedule: { kind: "cron", expr: "0 23 * * *", tz: config.timezone },
         sessionTarget: "isolated",
         wakeMode: "now",
         payload: {
@@ -210,16 +192,8 @@ function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
           thinking: "low",
           timeoutSeconds: 90,
         },
-        delivery: {
-          mode: "announce",
-          bestEffort: true,
-        },
-        state: {
-          nextRunAtMs: 0,
-          lastRunAtMs: 0,
-          lastRunStatus: null,
-          consecutiveErrors: 0,
-        },
+        delivery: { mode: "announce", bestEffort: true },
+        state: { nextRunAtMs: 0, lastRunAtMs: 0, lastRunStatus: null, consecutiveErrors: 0 },
         deleteAfterRun: false,
       },
     ],
@@ -229,8 +203,35 @@ function scaffoldCronJobs(config: Required<OperatorKitConfig>): string[] {
   return ["cron/jobs.json"];
 }
 
+// --- Tool parameter schemas (TypeBox) ---
+
+const ScaffoldStatusSchema = Type.Object({});
+
+const CreateInstinctSchema = Type.Object({
+  id: Type.String({ description: "kebab-case identifier (e.g., 'prefer-simple-solutions')" }),
+  domain: Type.Union([
+    Type.Literal("config"),
+    Type.Literal("coding"),
+    Type.Literal("security"),
+    Type.Literal("orchestration"),
+    Type.Literal("communication"),
+    Type.Literal("infra"),
+  ], { description: "Domain this instinct applies to" }),
+  trigger: Type.String({ description: "When this instinct should fire" }),
+  action: Type.String({ description: "What to do when triggered" }),
+  rationale: Type.String({ description: "Why this matters" }),
+  confidence: Type.Optional(Type.Number({ minimum: 0.3, maximum: 0.9, description: "Confidence (0.3 weak to 0.9 proven). Default: 0.5" })),
+});
+
+const MemoryRefSchema = Type.Object({
+  topic: Type.String({ description: "Topic slug — becomes ref-<topic>.md" }),
+  content: Type.String({ description: "Memory content (markdown)" }),
+});
+
+// --- Plugin entry point ---
+
 export default function operatorKit(api: OpenClawPluginApi) {
-  const rawConfig = api.getConfig() as OperatorKitConfig;
+  const rawConfig = (api.pluginConfig ?? {}) as OperatorKitConfig;
   const config: Required<OperatorKitConfig> = { ...DEFAULT_CONFIG, ...rawConfig };
 
   if (!config.enabled) return;
@@ -246,42 +247,25 @@ export default function operatorKit(api: OpenClawPluginApi) {
     date: new Date().toISOString().split("T")[0],
   };
 
-  // Scaffold on first run
   const allCreated: string[] = [];
-
-  // Always scaffold identity
   allCreated.push(...scaffoldIdentity(ws, vars));
-
-  // Memory system
-  if (config.enableMemorySystem) {
-    allCreated.push(...scaffoldMemory(ws));
-  }
-
-  // Instincts
-  if (config.enableInstincts) {
-    allCreated.push(...scaffoldInstincts(ws));
-  }
-
-  // Agent roles
-  if (config.enableAgentRoles) {
-    allCreated.push(...scaffoldAgentRoles(ws, vars));
-  }
-
-  // Cron jobs
-  if (config.enableCronJobs) {
-    allCreated.push(...scaffoldCronJobs(config));
-  }
+  if (config.enableMemorySystem) allCreated.push(...scaffoldMemory(ws));
+  if (config.enableInstincts) allCreated.push(...scaffoldInstincts(ws));
+  if (config.enableAgentRoles) allCreated.push(...scaffoldAgentRoles(ws, vars));
+  if (config.enableCronJobs) allCreated.push(...scaffoldCronJobs(config));
 
   if (allCreated.length > 0) {
-    api.log?.(`[operator-kit] Scaffolded ${allCreated.length} files for ${config.operatorName}`);
+    api.logger.info(`[operator-kit] Scaffolded ${allCreated.length} files for ${config.operatorName}`);
   }
 
-  // Register tools
+  // --- Register tools ---
+
   api.registerTool({
     name: "operator_scaffold_status",
-    description: "Check which operator-kit files exist and which are missing",
-    parameters: { type: "object", properties: {}, additionalProperties: false },
-    handler: async () => {
+    label: "Operator Scaffold Status",
+    description: "Check which operator-kit files exist and which are missing in the workspace",
+    parameters: ScaffoldStatusSchema,
+    async execute() {
       const checks = [
         "SOUL.md", "IDENTITY.md", "AGENTS.md", "TOOLS.md", "USER.md", "HEARTBEAT.md",
         "memory/MEMORY.md",
@@ -289,72 +273,54 @@ export default function operatorKit(api: OpenClawPluginApi) {
         "agents/orchestrator/SOUL.md", "agents/coder/SOUL.md",
         "agents/security/SOUL.md", "agents/researcher/SOUL.md",
       ];
-
       const status = checks.map((f) => ({
         file: f,
         exists: existsSync(join(ws, f)),
       }));
-
-      return JSON.stringify({ workspace: ws, operator: config.operatorName, files: status }, null, 2);
+      return textResult(JSON.stringify({ workspace: ws, operator: config.operatorName, files: status }, null, 2));
     },
   });
 
   api.registerTool({
     name: "operator_create_instinct",
-    description: "Create a new instinct (learned behavior pattern) for the operator",
-    parameters: {
-      type: "object",
-      properties: {
-        id: { type: "string", description: "kebab-case identifier" },
-        domain: { type: "string", enum: ["config", "coding", "security", "orchestration", "communication", "infra"] },
-        trigger: { type: "string", description: "When this instinct applies" },
-        action: { type: "string", description: "What to do" },
-        rationale: { type: "string", description: "Why this matters" },
-        confidence: { type: "number", minimum: 0.3, maximum: 0.9, description: "Confidence level (0.3 weak → 0.9 proven)" },
-      },
-      required: ["id", "domain", "trigger", "action", "rationale"],
-      additionalProperties: false,
-    },
-    handler: async (params: Record<string, unknown>) => {
+    label: "Create Operator Instinct",
+    description: "Create a new instinct (learned behavior pattern) for the operator. Instincts are confidence-weighted rules stored in instincts/global/*.yaml",
+    parameters: CreateInstinctSchema,
+    async execute(_toolCallId, params) {
       const today = new Date().toISOString().split("T")[0];
-      const instinct = `id: ${params.id}
+      const p = params as Record<string, unknown>;
+      const instinct = `id: ${p.id}
 created: ${today}
 updated: ${today}
-confidence: ${params.confidence ?? 0.5}
-domain: ${params.domain}
-trigger: "${params.trigger}"
+confidence: ${p.confidence ?? 0.5}
+domain: ${p.domain}
+trigger: "${p.trigger}"
 evidence_count: 0
 action: |
-  ${(params.action as string).split("\n").join("\n  ")}
+  ${(p.action as string).split("\n").join("\n  ")}
 rationale: |
-  ${(params.rationale as string).split("\n").join("\n  ")}
+  ${(p.rationale as string).split("\n").join("\n  ")}
 evidence: []
 `;
-      const path = join(ws, "instincts", "global", `${params.id}.yaml`);
+      const path = join(ws, "instincts", "global", `${p.id}.yaml`);
       ensureDir(join(ws, "instincts", "global"));
       writeFileSync(path, instinct, "utf-8");
-      return JSON.stringify({ created: path });
+      return textResult(JSON.stringify({ created: path }));
     },
   });
 
   api.registerTool({
     name: "operator_memory_ref",
-    description: "Create or update an evergreen reference memory file",
-    parameters: {
-      type: "object",
-      properties: {
-        topic: { type: "string", description: "Topic slug (becomes ref-<topic>.md)" },
-        content: { type: "string", description: "Memory content (markdown)" },
-      },
-      required: ["topic", "content"],
-      additionalProperties: false,
-    },
-    handler: async (params: Record<string, unknown>) => {
+    label: "Create/Update Memory Reference",
+    description: "Create or update an evergreen reference memory file at memory/ref-<topic>.md",
+    parameters: MemoryRefSchema,
+    async execute(_toolCallId, params) {
+      const p = params as Record<string, unknown>;
       const memDir = join(ws, "memory");
       ensureDir(memDir);
-      const path = join(memDir, `ref-${params.topic}.md`);
-      writeFileSync(path, params.content as string, "utf-8");
-      return JSON.stringify({ written: path });
+      const path = join(memDir, `ref-${p.topic}.md`);
+      writeFileSync(path, p.content as string, "utf-8");
+      return textResult(JSON.stringify({ written: path }));
     },
   });
 }
