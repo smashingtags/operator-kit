@@ -138,7 +138,7 @@ openclaw plugins install @xquik/tweetclaw
 openclaw config set tools.alsoAllow '["explore", "tweetclaw"]'
 ```
 
-Use it for scrape tweets, tweet scraper workflows, search tweets, search tweet replies, follower export, user lookup, media upload, media download, direct messages, monitor tweets, webhooks, giveaway draws, and approval-gated post tweets or post tweet replies.
+Use it to scrape tweets, run tweet-scraper workflows, search tweets and tweet replies, export followers, look up users, upload and download media, send direct messages, monitor tweets, handle webhooks, run giveaway draws, and perform approval-gated posting of tweets or tweet replies.
 
 Keep the Xquik API key in local OpenClaw config or environment variables. Do not store it in generated `TOOLS.md`, memory files, chats, or committed docs. Operator-kit's seeded `ask-before-external` instinct pairs well with TweetClaw: review the structured request before approving any visible X/Twitter action.
 
