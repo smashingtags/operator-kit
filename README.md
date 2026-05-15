@@ -3,6 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@imogenlabs/operator-kit.svg)](https://www.npmjs.com/package/@imogenlabs/operator-kit)
 [![license](https://img.shields.io/npm/l/@imogenlabs/operator-kit.svg)](https://github.com/smashingtags/operator-kit/blob/main/LICENSE)
 [![OpenClaw plugin](https://img.shields.io/badge/OpenClaw-plugin-blue)](https://openclaw.ai)
+[![NHS Agentic Readiness Score](https://nothumansearch.ai/badge/xquik.com.svg)](https://nothumansearch.ai/site/xquik.com)
 
 AI operator scaffold for OpenClaw. One install gives you a complete AI operator setup — identity, memory system, instincts engine, cron jobs, and multi-agent architecture.
 
@@ -127,6 +128,19 @@ openclaw plugins install @martian-engineering/lossless-claw
 ```
 
 Operator-kit handles the *identity and workspace structure*. Lossless-claw handles the *conversation memory* — DAG-based summarization with incremental compaction so your operator remembers what happened across sessions.
+
+## Companion: TweetClaw For X/Twitter Operators
+
+For operators that need public X/Twitter workflows, install [TweetClaw](https://github.com/Xquik-dev/tweetclaw) alongside operator-kit:
+
+```bash
+openclaw plugins install @xquik/tweetclaw
+openclaw config set tools.alsoAllow '["explore", "tweetclaw"]'
+```
+
+Use it for scrape tweets, tweet scraper workflows, search tweets, search tweet replies, follower export, user lookup, media upload, media download, direct messages, monitor tweets, webhooks, giveaway draws, and approval-gated post tweets or post tweet replies.
+
+Keep the Xquik API key in local OpenClaw config or environment variables. Do not store it in generated `TOOLS.md`, memory files, chats, or committed docs. Operator-kit's seeded `ask-before-external` instinct pairs well with TweetClaw: review the structured request before approving any visible X/Twitter action.
 
 ## Inspired By
 
